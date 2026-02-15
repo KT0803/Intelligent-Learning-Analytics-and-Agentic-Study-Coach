@@ -97,4 +97,5 @@ During training, every student's weighted academic score is calculated and secur
 ## Future Improvements
 - Integration of advanced explainability tools, such as SHAP or LIME, to provide weight breakdowns per feature on the frontend.
 - Connecting a persistent database to track individual student progression over time.
-- Adding temporal models (e.g., LSTMs) to measure academic trajectories rather than distinct snapshots.
+- Adding temporal models to measure academic trajectories rather than distinct snapshots.
+- And working
