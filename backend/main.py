@@ -26,7 +26,7 @@ app.add_middleware(
 # Load ML Artifacts ONCE at startup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Note: assuming ml-service is adjacent to backend
-ML_DIR = os.path.join(os.path.dirname(BASE_DIR), "ml-service")
+ML_DIR = os.path.join(os.path.dirname(BASE_DIR), "ml_services")
 
 try:
     model = joblib.load(os.path.join(ML_DIR, 'model.pkl'))
