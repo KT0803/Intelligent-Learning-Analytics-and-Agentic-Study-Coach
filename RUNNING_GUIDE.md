@@ -77,7 +77,7 @@ To use the visual application, open the frontend URI provided in Terminal 2 (usu
 ## Troubleshooting
 
 ### CORS Issues
-If your frontend responds with "Failed to fetch" or throws a CORS error in the browser console, ensure that the `allow_origins=` string in `backend/main.py` explicitly strictly matches your exact Vite frontend URL (e.g., `["http://localhost:3000"]` or `["http://localhost:5173"]`). Also ensure no trailing slashes exist.
+If your frontend responds with "Failed to fetch" or throws a CORS error in the browser console, ensure that the `FRONTEND_URL` in `backend/.env` explicitly strictly matches your exact Vite frontend URL (e.g., `http://localhost:3000` or `http://localhost:5173`). Also ensure no trailing slashes exist.
 
 ### Artifact Not Found Errors
 If the server crashes immediately claiming `FileNotFoundError`, the relative path calculating `ml-service/` internally failed. Ensure you are launching Uvicorn identically from *inside* the `backend/` directory, rather than executing it globally from the project root.

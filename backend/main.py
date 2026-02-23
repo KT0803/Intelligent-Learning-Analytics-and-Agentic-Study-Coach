@@ -4,6 +4,9 @@ from pydantic import BaseModel, Field
 import joblib
 import numpy as np
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI(title="Learning Analytics Risk Predictor")
 
