@@ -90,3 +90,119 @@ export default function ResearchPage() {
             window.location.href = "/login";
             return;
         }
+
+        // Set user from localStorage immediately after mount
+        setStoredUser(getStoredUser());
+
+        Promise.all([
+            api<{ user: { name: string; email: string } }>("/api/auth/me"),
+            api<{ history: HistoryItem[] }>("/api/research/history")
+        ])
+            .then(([, historyData]) => setHistory(historyData.history))
+            .catch((err: unknown) => {
+                // Only force logout on a real 401 — not on network errors or backend being down
+                const msg = err instanceof Error ? err.message : "";
+                if (msg.toLowerCase().includes("unauthorized") || msg.toLowerCase().includes("401")) {
+                    clearStoredSession();
+                    window.location.href = "/login";
+                }
+            });
+    }, []);
+
+    const prompts = useMemo(() => [
+        "Recent applications of graph neural networks in healthcare diagnostics",
+        "How retrieval-augmented generation reduces hallucinations in research assistants",
+        "Sustainable aviation fuel adoption barriers in developing economies",
+        "Benchmarking multimodal large language models for document reasoning"
+    ], []);
+
+    async function refreshHistory() {
+        const historyData = await api<{ history: HistoryItem[] }>("/api/research/history");
+        setHistory(historyData.history);
+    }
+
+
+    async function handleGenerate(event: React.FormEvent) {
+
+        event.preventDefault();
+        setLoading(true);
+        setLoadingLabel("Generating research report...");
+        setError("");
+
+        try {
+            const data = await api<ResearchResponse>("/api/research/report", {
+                method: "POST",
+                body: JSON.stringify({ query, sessionId })
+            });
+            setResult(data);
+            setSessionId(data.sessionId);
+            await refreshHistory();
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : "Failed to generate report");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleExpand() {
+        setLoading(true);
+        setLoadingLabel("Expanding topic...");
+        setError("");
+
+        try {
+            const data = await api<TopicExpansion & { query: string }>("/api/research/expand", {
+                method: "POST",
+                body: JSON.stringify({ query, sessionId })
+            });
+            setExpansion({
+                expansions: data.expansions,
+                subtopics: data.subtopics,
+                suggestedQuestions: data.suggestedQuestions
+            });
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : "Failed to expand topic");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleLogout() {
+        try {
+            await api("/api/auth/logout", { method: "POST" });
+        } catch {
+            // Clear locally either way.
+        }
+        clearStoredSession();
+        window.location.href = "/";
+    }
+
+    function exportMarkdown() {
+        if (!result) return;
+
+        const markdown = [
+            `# ${result.report.title}`,
+            "",
+            "## Abstract",
+            result.report.abstract,
+            "",
+            "## Key Findings",
+            ...result.report.keyFindings.map((entry) => `- ${entry}`),
+            "",
+            "## Sources",
+            ...result.report.sources.map((source) => `- [${source.title}](${source.url})`),
+            "",
+            "## Conclusion",
+            result.report.conclusion,
+            "",
+            "## Follow-Up Questions",
+            ...result.report.followUpQuestions.map((item) => `- ${item}`)
+        ].join("\n");
+
+        const blob = new Blob([markdown], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "research-report.md";
+        anchor.click();
+        URL.revokeObjectURL(url);
+    }
