@@ -206,3 +206,186 @@ export default function ResearchPage() {
         anchor.click();
         URL.revokeObjectURL(url);
     }
+
+    return (
+        <main className="page-shell">
+            {loading && <LoadingOverlay label={loadingLabel} />}
+            <div className="container">
+                <nav className="sketch-topbar">
+                    <Link href="/" className="brand-lockup">
+                        <div className="brand-mark">
+                            <ProjectLogo className="w-11 h-11" />
+                        </div>
+                        <div>
+                            <div className="eyebrow">Research Dashboard</div>
+                            <div className="brand">ResearchPilot <span>workspace</span></div>
+                        </div>
+                    </Link>
+                    <div className="topbar-status">
+                        <span className="status-chip">{history.length} reports</span>
+                        <span className="status-chip">{result?.workflow.sourcesAnalyzed ?? 0} sources</span>
+                    </div>
+                    <div className="nav-actions">
+                        {storedUser ? <span className="small muted">{storedUser.name}</span> : null}
+                        <Link href="/study" className="button soft">Study Copilot</Link>
+                        <button className="button cream" onClick={handleLogout}>Exit</button>
+                    </div>
+                </nav>
+
+                <div className="study-dashboard-shell research-shell">
+                    <aside className="study-sidebar">
+                        <section className="study-sidebar-panel blue pin-panel">
+                            <div className="eyebrow">Research Query</div>
+                            <h2>Frame the topic</h2>
+                            <form className="form" onSubmit={handleGenerate}>
+                                <textarea
+                                    className="textarea"
+                                    value={query}
+                                    onChange={(event) => setQuery(event.target.value)}
+                                    placeholder="Ask an open-ended research question"
+                                />
+                                <button className="button primary full" type="submit" disabled={loading}>
+                                    Generate Report
+                                </button>
+                                <button className="button accent full" type="button" disabled={loading || !query.trim()} onClick={handleExpand}>
+                                    Expand Topic
+                                </button>
+                            </form>
+                            {error ? <div className="error-text" style={{ marginTop: 12 }}>{error}</div> : null}
+                        </section>
+
+                        <section className="study-sidebar-panel prompt-stack-panel">
+                            <div className="eyebrow">Prompt Starters</div>
+                            <div className="stack">
+                                {prompts.map((prompt) => (
+                                    <button key={prompt} className="subject-tile compact" onClick={() => setQuery(prompt)}>
+                                        <strong>{prompt}</strong>
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+
+                        {expansion ? (
+                            <section className="study-sidebar-panel tape-panel">
+                                <div className="eyebrow">Topic Expansion</div>
+                                <div className="stack">
+                                    <div>
+                                        <strong>Broader angles</strong>
+                                        <div className="citation-list" style={{ marginTop: 10 }}>
+                                            {expansion.expansions.map((item) => <span key={item} className="pill">{item}</span>)}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <strong>Subtopics</strong>
+                                        <div className="citation-list" style={{ marginTop: 10 }}>
+                                            {expansion.subtopics.map((item) => <span key={item} className="pill">{item}</span>)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        ) : null}
+                    </aside>
+
+                    <section className="study-main">
+                        <div className="study-main-header sketch-hero-panel">
+                            <div>
+                                <div className="eyebrow">Structured Report</div>
+                                <h1>{result?.report.title ?? "Generate a report"}</h1>
+                                <p className="muted">
+                                    {result
+                                        ? `Generated ${formatDate(result.report.generatedAt)} using ${result.workflow.modelUsed ?? "local fallback"}`
+                                        : "Use the left panel to generate a source-backed research brief with structured output."}
+                                </p>
+                            </div>
+                            <div className="pill-row">
+                                {result ? <span className="pill">{result.workflow.sourcesAnalyzed} sources analyzed</span> : null}
+                                {result?.workflow.usedSessionMemory ? <span className="pill">session memory</span> : null}
+                                <button className="button cream" onClick={exportMarkdown} disabled={!result}>Export Markdown</button>
+                            </div>
+                        </div>
+
+                        {result ? (
+                            <div className="stack research-stack">
+                                <div className="dashboard-panel-grid compact">
+                                    <section className="dashboard-card paper-card">
+                                        <div className="panel-title">Abstract</div>
+                                        <p className="muted">{result.report.abstract}</p>
+                                    </section>
+                                    <section className="dashboard-card blueprint-card">
+                                        <div className="panel-title">Workflow</div>
+                                        <div className="citation-list">
+                                            {result.workflow.stages.map((stage) => <span key={stage} className="pill">{stage}</span>)}
+                                        </div>
+                                        {result.workflow.warnings.length > 0 ? (
+                                            <ul className="clean-list" style={{ marginTop: 12 }}>
+                                                {result.workflow.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+                                            </ul>
+                                        ) : (
+                                            <p className="muted" style={{ marginTop: 12 }}>No workflow warnings were returned for this report.</p>
+                                        )}
+                                    </section>
+                                </div>
+
+                                <section className="dashboard-card yellow-paper">
+                                    <div className="panel-title">Key Findings</div>
+                                    <ul className="clean-list">
+                                        {result.report.keyFindings.map((item) => <li key={item}>{item}</li>)}
+                                    </ul>
+                                </section>
+
+                                <div className="dashboard-panel-grid compact">
+                                    <section className="dashboard-card paper-card">
+                                        <div className="panel-title">Sources</div>
+                                        <div className="notes-file-list">
+                                            {result.report.sources.map((source) => (
+                                                <article key={source.url} className="notes-file-card">
+                                                    <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+                                                        <div>
+                                                            <strong>{source.title}</strong>
+                                                            <div className="small muted">{source.domain} | {source.sourceType}</div>
+                                                        </div>
+                                                        <span className="mini-chip">{Math.round(source.credibility * 100)}%</span>
+                                                    </div>
+                                                    <p className="muted">{source.snippet}</p>
+                                                    <a href={source.url} target="_blank" rel="noreferrer"><strong>Open source</strong></a>
+                                                </article>
+                                            ))}
+                                        </div>
+                                    </section>
+
+                                    <section className="dashboard-card blueprint-card">
+                                        <div className="panel-title">Conclusion</div>
+                                        <p className="muted">{result.report.conclusion}</p>
+                                        <div className="panel-title" style={{ marginTop: 20 }}>Follow-Up Questions</div>
+                                        <div className="citation-list">
+                                            {result.report.followUpQuestions.map((item) => <span key={item} className="pill">{item}</span>)}
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <section className="dashboard-card paper-card">
+                                    <div className="panel-title">Session History</div>
+                                    <div className="notes-file-list">
+                                        {history.map((entry) => (
+                                            <article key={`${entry.sessionId}-${entry.generatedAt}`} className="notes-file-card">
+                                                <strong>{entry.title}</strong>
+                                                <p className="muted">{entry.abstract}</p>
+                                                <div className="small">Sources: {entry.sourceCount} | {formatDate(entry.generatedAt)}</div>
+                                            </article>
+                                        ))}
+                                    </div>
+                                </section>
+                            </div>
+                        ) : (
+                            <div className="empty-study-state research-empty">
+                                <div className="big-emoji">🔎</div>
+                                <strong>No report yet</strong>
+                                <p className="muted">Generate a report to see research synthesis, workflow stages, sources, conclusion, follow-up questions, and session history in this workspace.</p>
+                            </div>
+                        )}
+                    </section>
+                </div>
+            </div>
+        </main>
+    );
+}
