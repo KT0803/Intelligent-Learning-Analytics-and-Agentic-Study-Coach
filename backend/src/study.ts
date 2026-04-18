@@ -6,7 +6,8 @@ import { studyEngine } from './services/studyEngine';
 const router = Router();
 
 router.post('/generate-plan', authenticateToken, async (req: AuthRequest, res: Response) => {
-  const plan: StudyPlan = req.body;
+  const plan: StudyPlan = req.body as StudyPlan;
+
   
   try {
     console.log(`Generating study plan for: ${plan.topic}`);

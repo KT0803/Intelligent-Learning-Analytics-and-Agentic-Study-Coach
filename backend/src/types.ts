@@ -1,3 +1,5 @@
+import type { Request } from 'express';
+
 export interface User {
   id: string;
   email: string;
@@ -32,3 +34,11 @@ export interface SearchResult {
   url: string;
   relevanceScore: number;
 }
+
+export interface DatabaseShape {
+  users: User[];
+  sessions: any[];
+  subjects: any[];
+  researchHistory: Record<string, any>;
+}
+

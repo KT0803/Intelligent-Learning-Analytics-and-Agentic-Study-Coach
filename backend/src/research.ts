@@ -6,7 +6,8 @@ import { researchEngine } from './services/researchEngine';
 const router = Router();
 
 router.post('/query', authenticateToken, async (req: AuthRequest, res: Response) => {
-  const query: ResearchQuery = req.body;
+  const query: ResearchQuery = req.body as ResearchQuery;
+
   
   try {
     console.log(`Processing research query: ${query.topic} (${query.depth})`);

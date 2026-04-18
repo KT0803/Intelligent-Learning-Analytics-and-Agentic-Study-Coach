@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { DatabaseShape } from "./types.js";
+import type { DatabaseShape } from "./types";
+
 
 const dataDir = join(process.cwd(), "data");
 const dbFile = join(dataDir, "db.json");
