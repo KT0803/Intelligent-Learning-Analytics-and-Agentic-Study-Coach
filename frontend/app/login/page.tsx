@@ -26,13 +26,13 @@ export default function LoginPage() {
         try {
             const result = await api<{
                 user: { name: string; email: string };
-                session: { token: string };
+                token: string;
             }>("/api/auth/login", {
                 method: "POST",
                 body: JSON.stringify({ email, password })
             });
 
-            setStoredSession(result.session.token, result.user);
+            setStoredSession(result.token, result.user);
             router.push("/research");
         } catch (caught) {
             setError(caught instanceof Error ? caught.message : "Login failed");
