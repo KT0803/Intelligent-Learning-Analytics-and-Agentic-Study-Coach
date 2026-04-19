@@ -47,4 +47,12 @@ router.post('/login', async (req: Request, res: Response) => {
   res.json({ token, user: { id: user.id, email: user.email, name: user.name } });
 });
 
+router.get('/me', authenticateToken, (req: AuthRequest, res: Response) => {
+  res.json({ user: req.user });
+});
+
+router.post('/logout', (req: Request, res: Response) => {
+  res.json({ message: 'Logged out successfully' });
+});
+
 export default router;
